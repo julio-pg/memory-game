@@ -84,16 +84,24 @@ pub mod memorygame {
 #[derive(Accounts)]
 pub struct InitializeMint<'info> {
     #[account(
-        init,              // Ensures the account is initialized
-        payer = payer,     // The payer for the account creation
-        mint::decimals = 6, // Set the token decimals
-        mint::authority = program_id, // Set the program as the mint authority
-        mint::freeze_authority = program_id, // Set the program as the freeze authority
+        init,
+        payer = payer,
+        mint::decimals = 6,
+        mint::authority = program_id,
+        mint::freeze_authority = program_id,
     )]
-    pub mint: Account<'info, Mint>, // The mint account
+    pub mint: Account<'info, Mint>, // The token mint
+    #[account(
+        init_if_needed, // Create the program's ATA if it doesn't exist
+        payer = payer,  // The payer for the ATA creation
+        associated_token::mint = mint, // The token mint
+        associated_token::authority = program_id, // The program owns the ATA
+    )]
+    pub program_ata: Account<'info, TokenAccount>, // The program's ATA
     pub payer: Signer<'info>, // The payer for the account creation
     pub system_program: Program<'info, System>, // System program
     pub token_program: Program<'info, Token>, // Token program
+    pub associated_token_program: Program<'info, AssociatedToken>, // Associated Token Program
     pub rent: Sysvar<'info, Rent>, // Rent sysvar
 }
 

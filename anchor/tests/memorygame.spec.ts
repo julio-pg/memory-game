@@ -1,76 +1,57 @@
 import * as anchor from '@coral-xyz/anchor'
 import { Program } from '@coral-xyz/anchor'
-import { Keypair } from '@solana/web3.js'
 import { Memorygame } from '../target/types/memorygame'
+import { TOKEN_2022_PROGRAM_ID, getAssociatedTokenAddress, getMint, getAccount } from '@solana/spl-token'
 
-describe('memorygame', () => {
-  // Configure the client to use the local cluster.
-  const provider = anchor.AnchorProvider.env()
-  anchor.setProvider(provider)
-  const payer = provider.wallet as anchor.Wallet
+describe('token-example', () => {
+  anchor.setProvider(anchor.AnchorProvider.env())
 
-  const program = anchor.workspace.Memorygame as Program<Memorygame>
+  const program = anchor.workspace.TokenExample as Program<Memorygame>
+  const [mint, mintBump] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from('mint')], program.programId)
 
-  const memorygameKeypair = Keypair.generate()
+  const [token, tokenBump] = anchor.web3.PublicKey.findProgramAddressSync([Buffer.from('token')], program.programId)
 
-  it('Initialize Memorygame', async () => {
-    await program.methods
-      .initialize()
+  it('Is initialized!', async () => {
+    const tx = await program.methods
+      .createAndMintTokens(new anchor.BN(100))
       .accounts({
-        memorygame: memorygameKeypair.publicKey,
-        payer: payer.publicKey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
-      .signers([memorygameKeypair])
-      .rpc()
+      .rpc({ commitment: 'confirmed' })
+    console.log('Your transaction signature', tx)
 
-    const currentCount = await program.account.memorygame.fetch(memorygameKeypair.publicKey)
+    const mintAccount = await getMint(program.provider.connection, mint, 'confirmed', TOKEN_2022_PROGRAM_ID)
 
-    expect(currentCount.count).toEqual(0)
+    console.log('Mint Account', mintAccount)
   })
 
-  it('Increment Memorygame', async () => {
-    await program.methods.increment().accounts({ memorygame: memorygameKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.memorygame.fetch(memorygameKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(1)
-  })
-
-  it('Increment Memorygame Again', async () => {
-    await program.methods.increment().accounts({ memorygame: memorygameKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.memorygame.fetch(memorygameKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(2)
-  })
-
-  it('Decrement Memorygame', async () => {
-    await program.methods.decrement().accounts({ memorygame: memorygameKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.memorygame.fetch(memorygameKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(1)
-  })
-
-  it('Set memorygame value', async () => {
-    await program.methods.set(42).accounts({ memorygame: memorygameKeypair.publicKey }).rpc()
-
-    const currentCount = await program.account.memorygame.fetch(memorygameKeypair.publicKey)
-
-    expect(currentCount.count).toEqual(42)
-  })
-
-  it('Set close the memorygame account', async () => {
-    await program.methods
-      .close()
+  it('Mint Tokens', async () => {
+    const tx = await program.methods
+      .transferTokens()
       .accounts({
-        payer: payer.publicKey,
-        memorygame: memorygameKeypair.publicKey,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
       })
-      .rpc()
+      .rpc({ commitment: 'confirmed' })
 
-    // The account should no longer exist, returning null.
-    const userAccount = await program.account.memorygame.fetchNullable(memorygameKeypair.publicKey)
-    expect(userAccount).toBeNull()
+    console.log('Your transaction signature', tx)
+
+    const associatedTokenAccount = await getAssociatedTokenAddress(
+      mint,
+      program.provider.publicKey,
+      false,
+      TOKEN_2022_PROGRAM_ID,
+    )
+
+    const recipientTokenAccount = await getAccount(
+      program.provider.connection,
+      associatedTokenAccount,
+      'confirmed',
+      TOKEN_2022_PROGRAM_ID,
+    )
+
+    const senderTokenAccount = await getAccount(program.provider.connection, token, 'confirmed', TOKEN_2022_PROGRAM_ID)
+
+    console.log('Recipient Token Account', recipientTokenAccount)
+    console.log('Sender Token Account', senderTokenAccount)
   })
 })

@@ -5,7 +5,7 @@ import { Navigate, RouteObject, useRoutes } from 'react-router-dom'
 const AccountListFeature = lazy(() => import('../components/account/account-list-feature'))
 const AccountDetailFeature = lazy(() => import('../components/account/account-detail-feature'))
 const ClusterFeature = lazy(() => import('../components/cluster/cluster-feature'))
-const MemorygameFeature = lazy(() => import('../components/memorygame/memorygame-feature'))
+const MemoryGame = lazy(() => import('../components/memorygame/memorygame-feature'))
 const DashboardFeature = lazy(() => import('../components/dashboard/dashboard-feature'))
 
 const links: { label: string; path: string }[] = [
@@ -17,7 +17,7 @@ const links: { label: string; path: string }[] = [
 const routes: RouteObject[] = [
   { path: '/account/', element: <AccountListFeature /> },
   { path: '/account/:address', element: <AccountDetailFeature /> },
-  { path: '/memorygame', element: <MemorygameFeature /> },
+  { path: '/memorygame', element: <MemoryGame /> },
   { path: '/clusters', element: <ClusterFeature /> },
 ]
 

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import Card from './Card'
 import Button from './Button'
 
-const images = ['🍎', '🍌', '🍒', '🍇', '🍍'] // 5 unique images
+const images = ['🍎', '🍌', '🍒', '🍇', '🍍', '🍑'] // 5 unique images
 const shuffledCards = () => {
-  const pairs = [...images, ...images].slice(0, 9) // Ensure 3x3 grid
+  const pairs = [...images, ...images].slice(0, 12) // Ensure 3x3 grid
   return pairs
     .sort(() => Math.random() - 0.5)
     .map((img, index) => ({
